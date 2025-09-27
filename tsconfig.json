@@ -2,10 +2,7 @@
   "compilerOptions": {
     "jsx": "preserve",
     "jsxImportSource": "react",
-    "lib": [
-      "ES2022",
-      "DOM"
-    ],
+    "lib": ["ES2022", "DOM"],
     "module": "ESNext",
     "target": "ES2022",
     "moduleResolution": "node",
@@ -13,9 +10,7 @@
     "skipLibCheck": true,
     "strict": false,
     "resolveJsonModule": true,
-    "types": [
-      "@types/react"
-    ],
+    "types": ["@types/react"],
     "allowJs": true,
     "noEmit": true,
     "incremental": true,
@@ -26,12 +21,6 @@
       }
     ]
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }

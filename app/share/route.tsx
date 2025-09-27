@@ -4,13 +4,16 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const palette = searchParams.get('palette')
   const custom = searchParams.get('custom-palette')
-  const query = palette ? `palette=${encodeURIComponent(palette)}`
-              : custom ? `custom-palette=${encodeURIComponent(custom)}` : ''
-  const target = `https://phantoml4rd.github.io/ffxiv-colorant-picker/${query?`?${query}`:''}`
-  
+  const query = palette
+    ? `palette=${encodeURIComponent(palette)}`
+    : custom
+      ? `custom-palette=${encodeURIComponent(custom)}`
+      : ''
+  const target = `https://phantoml4rd.github.io/ffxiv-colorant-picker/${query ? `?${query}` : ''}`
+
   const host = request.headers.get('host') || 'localhost'
   const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https'
-  const og = `${protocol}://${host}/og${query?`?${query}`:''}`
+  const og = `${protocol}://${host}/og${query ? `?${query}` : ''}`
 
   const html = `<!doctype html><html><head>
 <meta charset="utf-8"/>
@@ -35,12 +38,12 @@ export async function GET(request: NextRequest) {
 
   const isDev = host.includes('localhost') || host.includes('127.0.0.1')
   const cacheControl = isDev ? 'no-cache' : 'public, max-age=604800, immutable'
-  
+
   return new NextResponse(html, {
     status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': cacheControl
-    }
+      'Cache-Control': cacheControl,
+    },
   })
 }
