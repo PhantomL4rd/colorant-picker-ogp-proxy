@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
           </div>
           
           <div style={{
-            flex: '1',
+            flex: '2',
             backgroundColor: colors[2],
             display: 'flex',
             position: 'relative',
