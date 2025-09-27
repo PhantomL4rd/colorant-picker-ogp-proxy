@@ -56,11 +56,8 @@ FF14カララントピッカーのOGP画像生成ファサード
 # 依存関係をインストール
 npm install
 
-# 開発サーバー起動 (ローカル)
-npm run dev-local
-
-# Vercel開発サーバー起動
-npm run dev
+# 開発サーバー起動
+vercel dev
 ```
 
 ### デプロイ
