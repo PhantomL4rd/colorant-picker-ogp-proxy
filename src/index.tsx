@@ -4,8 +4,8 @@ import LZString from 'lz-string'
 
 const app = new Hono()
 
-const GH_BASE = 'https://phantoml4rd.github.io/ffxiv-colorant-picker'
-const DYES_URL = `${GH_BASE}/data/dyes.json`
+const APP_BASE = 'https://colorant-picker.pl4rd.com'
+const DYES_URL = `${APP_BASE}/data/dyes.json`
 const MAX_QUERY_LENGTH = 2048
 const MAX_JSON_LENGTH = 10000
 
@@ -41,7 +41,9 @@ const getDyes = async () => {
   if (dyesCache) return dyesCache
   try {
     const res = await fetch(DYES_URL)
-    const data = await res.json() as { dyes?: Array<{ id: string; name: string; rgb: { r: number; g: number; b: number } }> }
+    const data = (await res.json()) as {
+      dyes?: Array<{ id: string; name: string; rgb: { r: number; g: number; b: number } }>
+    }
     const dyeMap: Record<string, { name: string; rgb: { r: number; g: number; b: number } }> = {}
     if (data.dyes && Array.isArray(data.dyes)) {
       for (const dye of data.dyes) {
@@ -59,188 +61,206 @@ const getDyes = async () => {
   }
 }
 
-// /og - OGP画像生成
-app.get('/og', async (c) => {
-  try {
-    const paletteParam = c.req.query('palette')
-    const customParam = c.req.query('custom-palette')
+// 圧縮データから色を抽出する共通関数
+const extractColors = async (compressedData: string | null | undefined): Promise<string[]> => {
+  const colors = ['#ffffff', '#666666', '#000000']
+  if (!compressedData) return colors
 
-    const host = c.req.header('host') || 'localhost'
-    const isDev = host.includes('localhost') || host.includes('127.0.0.1')
-    const cacheControl = isDev ? 'no-cache' : 'public, max-age=604800, s-maxage=604800'
+  const data = decodeParam(compressedData)
+  if (!data) return colors
 
-    let colors = ['#ffffff', '#666666', '#000000']
+  console.log('Decoded data:', JSON.stringify(data))
+  const dyes = await getDyes()
+  console.log('Dyes loaded:', Object.keys(dyes).length, 'entries')
+  console.log('Looking for:', data.p, data.s)
 
-    if (paletteParam || customParam) {
-      const data = decodeParam(paletteParam || customParam)
-      if (data) {
-        console.log('Decoded data:', JSON.stringify(data))
-        const dyes = await getDyes()
-        console.log('Dyes loaded:', Object.keys(dyes).length, 'entries')
-        console.log('Looking for:', data.p, data.s)
+  // プライマリ色: 通常カララント or カスタムカラー
+  if (typeof data.p === 'string' && dyes[data.p]) {
+    colors[0] = toHex(dyes[data.p].rgb)
+  } else if (data.p?.type === 'custom' && data.p.rgb) {
+    colors[0] = toHex(data.p.rgb)
+  }
 
-        if (typeof data.p === 'string' && dyes[data.p]) {
-          colors[0] = toHex(dyes[data.p].rgb)
-        } else if (data.p?.type === 'custom' && data.p.rgb) {
-          colors[0] = toHex(data.p.rgb)
-        }
+  // セカンダリ色
+  if (data.s?.[0] && dyes[data.s[0]]) {
+    colors[1] = toHex(dyes[data.s[0]].rgb)
+  }
+  if (data.s?.[1] && dyes[data.s[1]]) {
+    colors[2] = toHex(dyes[data.s[1]].rgb)
+  }
 
-        if (data.s?.[0] && dyes[data.s[0]]) {
-          colors[1] = toHex(dyes[data.s[0]].rgb)
-        }
-        if (data.s?.[1] && dyes[data.s[1]]) {
-          colors[2] = toHex(dyes[data.s[1]].rgb)
-        }
-      }
-    }
+  return colors
+}
 
-    return new ImageResponse(
-      (
+// エラー時のOGP画像
+const generateErrorImage = () => {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '1200px',
+          height: '630px',
+          backgroundColor: '#1a1a1a',
+          fontFamily: 'sans-serif',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <div
           style={{
-            width: '1200px',
-            height: '630px',
-            display: 'flex',
-            flexDirection: 'row',
+            color: 'white',
+            fontSize: '32px',
+            textAlign: 'center',
+            fontWeight: 'bold',
           }}
         >
-          {/* 左：メイン 61.8% */}
+          FFXIV Colorant Picker
+        </div>
+      </div>
+    ),
+    {
+      width: 1200,
+      height: 630,
+      headers: {
+        'Cache-Control': 'no-cache',
+      },
+    }
+  )
+}
+
+// OGP画像生成の共通処理
+const generateOgImage = (colors: string[], cacheControl: string) => {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '1200px',
+          height: '630px',
+          display: 'flex',
+          flexDirection: 'row',
+        }}
+      >
+        {/* 左：メイン 61.8% */}
+        <div
+          style={{
+            flex: 61.8,
+            backgroundColor: colors[0],
+            display: 'flex',
+            position: 'relative',
+            alignItems: 'flex-end',
+            justifyContent: 'flex-start',
+          }}
+        />
+
+        {/* 右：残りを縦に 23.6% / 14.6% */}
+        <div
+          style={{
+            flex: 38.2,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           <div
             style={{
-              flex: 61.8,
-              backgroundColor: colors[0],
+              flex: 23.6,
+              backgroundColor: colors[1],
               display: 'flex',
               position: 'relative',
               alignItems: 'flex-end',
               justifyContent: 'flex-start',
             }}
           />
-
-          {/* 右：残りを縦に 23.6% / 14.6% */}
           <div
             style={{
-              flex: 38.2,
+              flex: 14.6,
+              backgroundColor: colors[2],
               display: 'flex',
-              flexDirection: 'column',
+              position: 'relative',
+              alignItems: 'flex-end',
+              justifyContent: 'flex-start',
             }}
-          >
-            <div
-              style={{
-                flex: 23.6,
-                backgroundColor: colors[1],
-                display: 'flex',
-                position: 'relative',
-                alignItems: 'flex-end',
-                justifyContent: 'flex-start',
-              }}
-            />
-            <div
-              style={{
-                flex: 14.6,
-                backgroundColor: colors[2],
-                display: 'flex',
-                position: 'relative',
-                alignItems: 'flex-end',
-                justifyContent: 'flex-start',
-              }}
-            />
-          </div>
+          />
         </div>
-      ),
-      {
-        width: 1200,
-        height: 630,
-        headers: {
-          'Cache-Control': cacheControl,
-        },
+      </div>
+    ),
+    {
+      width: 1200,
+      height: 630,
+      headers: {
+        'Cache-Control': cacheControl,
       },
-    )
-  } catch (error) {
-    console.error('Error generating OGP image:', error)
+    }
+  )
+}
 
-    return new ImageResponse(
-      (
-        <div
-          style={{
-            width: '1200px',
-            height: '630px',
-            backgroundColor: '#1a1a1a',
-            fontFamily: 'sans-serif',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div
-            style={{
-              color: 'white',
-              fontSize: '32px',
-              textAlign: 'center',
-              fontWeight: 'bold',
-            }}
-          >
-            FFXIV Colorant Picker
-          </div>
-        </div>
-      ),
-      {
-        width: 1200,
-        height: 630,
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      },
-    )
-  }
-})
-
-// /share - OGPメタ付きHTMLでリダイレクト
-app.get('/share', (c) => {
-  const palette = c.req.query('palette')
-  const custom = c.req.query('custom-palette')
-  const query = palette
-    ? `palette=${encodeURIComponent(palette)}`
-    : custom
-      ? `custom-palette=${encodeURIComponent(custom)}`
-      : ''
-  const target = `https://phantoml4rd.github.io/ffxiv-colorant-picker/${query ? `?${query}` : ''}`
-
-  const host = c.req.header('host') || 'localhost'
-  const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https'
-  const og = `${protocol}://${host}/og${query ? `?${query}` : ''}`
-
-  const html = `<!doctype html><html><head>
+// OGPメタタグ付きHTMLを生成
+const generateShareHtml = (ogImageUrl: string, targetUrl: string) => {
+  return `<!doctype html><html><head>
 <meta charset="utf-8"/>
 <title>FFXIV Colorant Picker</title>
 <meta property="og:title" content="FFXIV Colorant Picker" />
 <meta property="og:description" content="FF14のカララントの組み合わせを配色理論に基づいて提案するツール" />
 <meta property="og:site_name" content="FF14 カララントピッカー" />
-<meta property="og:image" content="${og}"/>
+<meta property="og:image" content="${ogImageUrl}"/>
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="FFXIV カララントピッカー" />
 <meta name="twitter:description" content="FF14のカララントの組み合わせを配色理論に基づいて提案するツール" />
-<meta name="twitter:image" content="${og}"/>
-<link rel="canonical" href="${target}"/>
+<meta name="twitter:image" content="${ogImageUrl}"/>
+<link rel="canonical" href="${targetUrl}"/>
 <meta name="robots" content="noindex,follow"/>
-<meta http-equiv="refresh" content="0;url=${target}"/>
+<meta http-equiv="refresh" content="0;url=${targetUrl}"/>
 </head>
 <body style="background:#0b0d10;color:#fff;display:grid;place-items:center;height:100vh">
-<p>Redirecting… <a href="${target}">open</a></p>
-<script>location.replace(${JSON.stringify(target)})</script>
+<p>Redirecting… <a href="${targetUrl}">open</a></p>
+<script>location.replace(${JSON.stringify(targetUrl)})</script>
 </body></html>`
+}
 
+// /og/:data - パスベースのOGP画像生成
+app.get('/og/:data', async (c) => {
+  try {
+    const compressedData = c.req.param('data')
+    const host = c.req.header('host') || 'localhost'
+    const isDev = host.includes('localhost') || host.includes('127.0.0.1')
+    const cacheControl = isDev ? 'no-cache' : 'public, max-age=604800, s-maxage=604800'
+
+    const colors = await extractColors(compressedData)
+    return generateOgImage(colors, cacheControl)
+  } catch (error) {
+    console.error('Error generating OGP image:', error)
+    return generateErrorImage()
+  }
+})
+
+// /share/:data - パスベースのシェアURL
+app.get('/share/:data', (c) => {
+  const compressedData = c.req.param('data')
+  const host = c.req.header('host') || 'localhost'
+  const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https'
   const isDev = host.includes('localhost') || host.includes('127.0.0.1')
   const cacheControl = isDev ? 'no-cache' : 'public, max-age=604800, immutable'
 
+  // OGP画像URL
+  const ogImageUrl = `${protocol}://${host}/og/${compressedData}`
+  // リダイレクト先（フロントエンド）
+  const targetUrl = `${APP_BASE}/share/${compressedData}`
+
+  const html = generateShareHtml(ogImageUrl, targetUrl)
   return c.html(html, 200, {
     'Cache-Control': cacheControl,
   })
 })
 
+// /share - パラメータなしはトップにリダイレクト
+app.get('/share', (c) => {
+  return c.redirect(APP_BASE)
+})
+
 // ルートパス
 app.get('/', (c) => {
-  return c.redirect('/share')
+  return c.redirect(APP_BASE)
 })
 
 export default app
