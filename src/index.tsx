@@ -200,13 +200,13 @@ const generateShareHtml = (ogImageUrl: string, targetUrl: string) => {
 <meta charset="utf-8"/>
 <title>カララントピッカー</title>
 <meta property="og:title" content="カララントピッカー" />
-<meta property="og:description" content="FF14のカララントの組み合わせを配色理論に基づいて提案するツール" />
+<meta property="og:description" content="FF14のカララント（染料）から3色の組み合わせを提案するツールです。" />
 <meta property="og:site_name" content="カララントピッカー" />
 <meta property="og:image" content="${ogImageUrl}"/>
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="カララントピッカー" />
-<meta name="twitter:description" content="FF14のカララントの組み合わせを配色理論に基づいて提案するツール" />
+<meta name="twitter:description" content="FF14のカララント（染料）から3色の組み合わせを提案するツールです。" />
 <meta name="twitter:image" content="${ogImageUrl}"/>
 <link rel="canonical" href="${targetUrl}"/>
 <meta name="robots" content="noindex,follow"/>
