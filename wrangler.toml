@@ -1,4 +1,4 @@
 name = "colorant-picker-worker"
-main = "src/index.tsx"
+main = "src/index.ts"
 compatibility_date = "2025-12-17"
 compatibility_flags = ["nodejs_compat"]
