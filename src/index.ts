@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { appContext } from './middleware'
-import type { AppEnv } from './types'
+import { scheduled } from './scheduled'
+import type { AppEnv, Env } from './types'
 import { APP_BASE_URL, extractColors } from './utils'
 import { generateErrorImage, generateOgImage, generateShareHtml } from './views'
 
@@ -28,7 +29,8 @@ app.get('/og/:data', async (c) => {
 })
 
 // SNSクローラーのUser-Agent判定
-const CRAWLER_PATTERNS = /Twitterbot|facebookexternalhit|Discordbot|Slackbot|LinkedInBot|LINE|Iframely/i
+const CRAWLER_PATTERNS =
+  /Twitterbot|facebookexternalhit|Discordbot|Slackbot|LinkedInBot|LINE|Iframely/i
 
 /**
  * シェアページ（OGPメタタグ付きHTML）
@@ -69,4 +71,7 @@ app.get('/share', (c) => c.redirect(APP_BASE_URL))
  */
 app.get('/', (c) => c.redirect(APP_BASE_URL))
 
-export default app
+export default {
+  fetch: app.fetch,
+  scheduled,
+} satisfies ExportedHandler<Env>

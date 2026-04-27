@@ -2,3 +2,18 @@ name = "colorant-picker-worker"
 main = "src/index.ts"
 compatibility_date = "2025-12-17"
 compatibility_flags = ["nodejs_compat"]
+
+# 毎日UTC 0:00 (JST 9:00) にショーケースキャッシュを更新
+[triggers]
+crons = ["0 0 * * *"]
+
+# colorant-picker (Pages) と同一の D1 を共有
+[[d1_databases]]
+binding = "DB"
+database_name = "colorant-picker-showcase"
+database_id = "a3886729-0e7f-4cf3-9d6d-f349a34bc9f6"
+
+# colorant-picker (Pages) と同一の KV namespace を共有
+[[kv_namespaces]]
+binding = "KV"
+id = "79716dd0f4714941924e98852a3975eb"

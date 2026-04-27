@@ -40,9 +40,18 @@ export interface PaletteData {
 }
 
 /**
+ * Cloudflare Worker Bindings
+ */
+export interface Env {
+  DB: D1Database
+  KV: KVNamespace
+}
+
+/**
  * Hono Context用の環境変数型
  */
 export type AppEnv = {
+  Bindings: Env
   Variables: {
     isDev: boolean
     protocol: 'http' | 'https'
