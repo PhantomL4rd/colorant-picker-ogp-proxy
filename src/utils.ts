@@ -78,8 +78,8 @@ export const getDyes = async (): Promise<DyeMap> => {
  */
 export const extractColors = async (
   compressedData: string | null | undefined,
-): Promise<string[]> => {
-  const defaultColors = ['#ffffff', '#666666', '#000000']
+): Promise<[string, string, string]> => {
+  const defaultColors: [string, string, string] = ['#ffffff', '#666666', '#000000']
 
   if (!compressedData) return defaultColors
 
@@ -91,7 +91,7 @@ export const extractColors = async (
   console.log('Dyes loaded:', Object.keys(dyes).length, 'entries')
   console.log('Looking for:', data.p, data.s)
 
-  const colors = [...defaultColors]
+  const colors: [string, string, string] = [...defaultColors]
 
   // プライマリ色: 通常カララント or カスタムカラー
   if (typeof data.p === 'string' && dyes[data.p]) {
