@@ -3,6 +3,14 @@ main = "src/index.ts"
 compatibility_date = "2025-12-17"
 compatibility_flags = ["nodejs_compat"]
 
+# Pages (colorant-picker.pl4rd.com) と同一ドメインの /share/* と /og/* を Worker に向ける。
+# Workers Routes は Pages のリクエストハンドラよりも先に評価されるため、Pages の
+# SPA fallback (_redirects の `/*  /index.html  200`) を経由せず Worker が応答する。
+routes = [
+  { pattern = "colorant-picker.pl4rd.com/share/*", zone_name = "pl4rd.com" },
+  { pattern = "colorant-picker.pl4rd.com/og/*", zone_name = "pl4rd.com" },
+]
+
 # OGP画像用の和文フォント(subset 済 ttf)を ArrayBuffer としてバンドル
 [[rules]]
 type = "Data"
