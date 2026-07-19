@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "warn"
+  },
+  "rules": {
+    "typescript/consistent-type-imports": "error",
+    "unicorn/prefer-node-protocol": "error"
+  },
+  "ignorePatterns": [".wrangler/**", "node_modules/**", "dist/**", "src/assets/**"]
+}

@@ -197,9 +197,7 @@ export const generateShareHtml = (ogImageUrl: string, targetUrl: string) => {
         <meta name="robots" content="noindex,follow" />
         <meta http-equiv="refresh" content="0;url=${targetUrl}" />
       </head>
-      <body
-        style="background:#0b0d10;color:#fff;display:grid;place-items:center;height:100vh"
-      >
+      <body style="background:#0b0d10;color:#fff;display:grid;place-items:center;height:100vh">
         <p>Redirecting… <a href="${targetUrl}">open</a></p>
         <script>
           location.replace(${JSON.stringify(targetUrl)})

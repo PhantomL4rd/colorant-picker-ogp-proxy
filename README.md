@@ -57,16 +57,23 @@ LZString圧縮前のJSONデータ形式。プライマリ色 (`p`) はカララ�
 ### 起動
 ```bash
 # 依存関係をインストール
-npm install
+bun install
 
 # 開発サーバー起動
-npm run dev
+bun run dev
 ```
 
 ### デプロイ
 ```bash
 # Cloudflare Workersにデプロイ
-npm run deploy
+bun run deploy
+```
+
+### Lint / Format
+```bash
+bun run lint          # oxlint
+bun run format:check  # oxfmt --check
+bun run format        # oxfmt (書き込み)
 ```
 
 ## 技術構成
